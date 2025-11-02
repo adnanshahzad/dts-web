@@ -153,7 +153,7 @@ import { environment } from '../../../environments/environment';
                 <h3 class="text-xl font-semibold text-gray-900 mb-1">{{ service.name }}</h3>
                 <p class="text-gray-600 mb-4 line-clamp-3">{{ service.description || 'No description available' }}</p>
                 <div class="flex justify-between items-center mb-4">
-                  <span class="text-2xl font-bold text-primary-600">{{ '$' + service.price }}</span>
+                  <span class="text-2xl font-bold text-primary-600">{{ 'AED ' + service.price }}</span>
                   <span class="text-sm text-gray-500">{{ service.duration }} min</span>
                 </div>
                 <div class="grid grid-cols-3 gap-2 text-sm">

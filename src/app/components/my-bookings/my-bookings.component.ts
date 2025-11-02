@@ -91,7 +91,7 @@ import { AuthService } from '../../services/auth.service';
                     <p class="text-sm text-gray-600">Quantity: {{ service.quantity }}</p>
                   </div>
                   <div class="text-right">
-                    <p class="font-medium text-gray-900">{{ getServicePrice(service) | currency }}</p>
+                    <p class="font-medium text-gray-900">{{ getServicePrice(service) | currency:'AED' }}</p>
                   </div>
                 </div>
               </div>
@@ -100,7 +100,7 @@ import { AuthService } from '../../services/auth.service';
                 <div class="flex justify-between items-center">
                   <div>
                     <p class="text-sm text-gray-600">Total Amount</p>
-                    <p class="text-lg font-bold text-gray-900">{{ booking.totalPrice | currency }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ booking.totalPrice | currency:'AED' }}</p>
                   </div>
                   <div class="flex space-x-2">
                     <button 
@@ -225,7 +225,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   viewBookingDetails(booking: Booking): void {
-    alert(`Booking Details:\n\nID: ${booking._id}\nDate: ${this.formatDate(booking.bookingDate)}\nTime: ${booking.bookingTime}\nStatus: ${booking.status}\nTotal: $${booking.totalPrice}`);
+    alert(`Booking Details:\n\nID: ${booking._id}\nDate: ${this.formatDate(booking.bookingDate)}\nTime: ${booking.bookingTime}\nStatus: ${booking.status}\nTotal: AED ${booking.totalPrice}`);
   }
 
   goToServices(): void {

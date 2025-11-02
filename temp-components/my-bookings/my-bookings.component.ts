@@ -54,7 +54,7 @@ import { Router } from '@angular/router';
                     <p class="font-medium text-gray-900">{{ service.serviceName }}</p>
                     <p class="text-sm text-gray-600">Quantity: {{ service.quantity }}</p>
                   </div>
-                  <span class="font-medium text-gray-900">{{ '$' + service.price }}</span>
+                  <span class="font-medium text-gray-900">{{ 'AED ' + service.price }}</span>
                 </div>
               </div>
             </div>
@@ -62,7 +62,7 @@ import { Router } from '@angular/router';
             <div class="flex justify-between items-center mb-4">
               <div>
                 <p class="text-sm text-gray-600">Total Amount:</p>
-                <p class="text-lg font-semibold text-gray-900">{{ '$' + booking.totalAmount }}</p>
+                <p class="text-lg font-semibold text-gray-900">{{ 'AED ' + booking.totalAmount }}</p>
               </div>
               <div *ngIf="booking.customerNotes">
                 <p class="text-sm text-gray-600">Notes:</p>
@@ -145,7 +145,7 @@ export class MyBookingsComponent implements OnInit {
 
   viewBookingDetails(booking: Booking): void {
     // For now, just show an alert with booking details
-    alert(`Booking Details:\n\nID: ${booking._id}\nDate: ${this.formatDate(booking.bookingDate)}\nTime: ${booking.bookingTime}\nStatus: ${booking.status}\nTotal: $${booking.totalAmount}`);
+    alert(`Booking Details:\n\nID: ${booking._id}\nDate: ${this.formatDate(booking.bookingDate)}\nTime: ${booking.bookingTime}\nStatus: ${booking.status}\nTotal: AED ${booking.totalAmount}`);
   }
 
   formatDate(dateString: string): string {
