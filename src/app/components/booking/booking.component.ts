@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="min-h-screen bg-gray-50 py-8">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
           <button
@@ -65,42 +65,131 @@ import { environment } from '../../../environments/environment';
             <h2 class="text-2xl font-semibold text-gray-900 mb-6">Booking Information</h2>
 
             <form (ngSubmit)="submitBooking()" #bookingForm="ngForm">
-              <!-- Date Selection -->
+              <!-- Date Selection Section -->
               <div class="mb-6">
-                <label for="bookingDate" class="block text-sm font-medium text-gray-700 mb-2">
-                  Select Date *
-                </label>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">When would you like your service?</h3>
+                <div class="relative flex items-center">
+                  <button
+                    type="button"
+                    (click)="scrollDates('left')"
+                    class="absolute left-0 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+                    style="top: calc(50% + 13px); transform: translateY(-50%);"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                  <div
+                    id="date-scroll-container"
+                    class="flex gap-2 overflow-x-auto flex-nowrap px-10"
+                    style="scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;"
+                  >
+                    <div *ngFor="let date of availableDates; let i = index" class="flex-shrink-0 flex flex-col items-center">
+                      <span class="text-sm font-bold mb-1" [class.text-blue-600]="selectedDateIndex === i" [class.text-gray-700]="selectedDateIndex !== i">
+                        {{ date.dayName }}
+                      </span>
+                      <button
+                        type="button"
+                        (click)="selectDate(i)"
+                        [class.bg-blue-50]="selectedDateIndex === i"
+                        [class.border-blue-500]="selectedDateIndex === i"
+                        [class.border-gray-300]="selectedDateIndex !== i"
+                        [class.text-blue-600]="selectedDateIndex === i"
+                        [class.text-gray-900]="selectedDateIndex !== i"
+                        class="flex items-center justify-center w-14 h-14 rounded-full border-2 bg-white hover:bg-gray-50 transition-colors"
+                      >
+                        <span class="text-base font-bold">
+                          {{ date.dateNumber }}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="scrollDates('right')"
+                    class="absolute right-0 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8"
+                    style="top: calc(50% + 13px); transform: translateY(-50%);"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                </div>
+                <style>
+                  #date-scroll-container::-webkit-scrollbar {
+                    display: none;
+                  }
+                </style>
+                <!-- Hidden input for form validation -->
                 <input
-                  type="date"
-                  id="bookingDate"
+                  type="hidden"
                   name="bookingDate"
                   [(ngModel)]="bookingData.bookingDate"
                   #dateInput="ngModel"
                   required
-                  [min]="minDate"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
                 <div *ngIf="dateInput.invalid && dateInput.touched" class="mt-1 text-sm text-red-600">
                   Please select a valid date
                 </div>
               </div>
 
-              <!-- Time Selection -->
+              <!-- Time Selection Section -->
               <div class="mb-6">
-                <label for="bookingTime" class="block text-sm font-medium text-gray-700 mb-2">
-                  Select Time *
-                </label>
-                <select
-                  id="bookingTime"
+                <div class="mb-3">
+                  <h3 class="text-lg font-semibold text-gray-900">What time would you like us to start?</h3>
+                </div>
+                <div class="relative flex items-center">
+                  <button
+                    type="button"
+                    (click)="scrollTimes('left')"
+                    class="absolute left-0 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 top-1/2 -translate-y-1/2"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                  <div
+                    id="time-scroll-container"
+                    class="flex gap-2 overflow-x-auto flex-nowrap px-10"
+                    style="scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;"
+                  >
+                    <button
+                      *ngFor="let timeSlot of availableTimeSlots; let i = index"
+                      type="button"
+                      (click)="selectTime(i)"
+                      [class.bg-blue-50]="selectedTimeIndex === i"
+                      [class.border-blue-500]="selectedTimeIndex === i"
+                      [class.border-gray-300]="selectedTimeIndex !== i"
+                      [class.text-blue-600]="selectedTimeIndex === i"
+                      [class.text-gray-900]="selectedTimeIndex !== i"
+                      class="flex-shrink-0 px-4 py-2 rounded-lg border-2 bg-white hover:bg-gray-50 transition-colors whitespace-nowrap"
+                    >
+                      {{ timeSlot }}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="scrollTimes('right')"
+                    class="absolute right-0 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-md flex items-center justify-center w-8 h-8 top-1/2 -translate-y-1/2"
+                  >
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                </div>
+                <style>
+                  #time-scroll-container::-webkit-scrollbar {
+                    display: none;
+                  }
+                </style>
+                <!-- Hidden input for form validation -->
+                <input
+                  type="hidden"
                   name="bookingTime"
                   [(ngModel)]="bookingData.bookingTime"
                   #timeInput="ngModel"
                   required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Choose a time</option>
-                  <option *ngFor="let time of availableTimes" [value]="time">{{ time }}</option>
-                </select>
+                />
                 <div *ngIf="timeInput.invalid && timeInput.touched" class="mt-1 text-sm text-red-600">
                   Please select a time
                 </div>
@@ -153,7 +242,7 @@ import { environment } from '../../../environments/environment';
               <!-- Submit Button -->
               <button
                 type="submit"
-                [disabled]="!bookingForm.valid || isSubmitting"
+                [disabled]="!bookingForm.valid || isSubmitting || !isValidTimeSelected()"
                 class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
               >
                 <span *ngIf="!isSubmitting">Confirm Booking</span>
@@ -192,7 +281,15 @@ export class BookingComponent implements OnInit {
   isLoading = true;
   isSubmitting = false;
   minDate = '';
+  maxDate = '';
   availableTimes: string[] = [];
+
+  // Date and time selection
+  availableDates: Array<{ date: Date; displayDate: string; dayName: string; dateNumber: string; dateValue: string }> = [];
+  allTimeSlots: string[] = []; // All possible time slots
+  availableTimeSlots: string[] = []; // Filtered time slots based on selected date
+  selectedDateIndex = 0;
+  selectedTimeIndex = 0;
 
   bookingData: BookingRequest = {
     services: [],
@@ -215,8 +312,17 @@ export class BookingComponent implements OnInit {
       return;
     }
 
-    // Set minimum date to today
-    this.minDate = new Date().toISOString().split('T')[0];
+    // Set minimum date to today and max date to 2 weeks from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.minDate = today.toISOString().split('T')[0];
+    
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + 13); // 14 days total (0-13 = 14 days)
+    this.maxDate = maxDate.toISOString().split('T')[0];
+
+    // Initialize date and time selection
+    this.initializeDateAndTimeSelection();
 
     // Load service details
     this.loadService();
@@ -248,6 +354,107 @@ export class BookingComponent implements OnInit {
     });
   }
 
+  initializeDateAndTimeSelection(): void {
+    // Generate dates for 2 weeks from today (using UAE timezone)
+    this.availableDates = [];
+    const now = new Date();
+    
+    // Get today's date in UAE timezone
+    const uaeTodayString = now.toLocaleDateString('en-CA', { 
+      timeZone: 'Asia/Dubai'
+    }); // Returns YYYY-MM-DD format
+    
+    // Parse the UAE today date
+    const [year, month, day] = uaeTodayString.split('-').map(Number);
+    
+    for (let i = 0; i < 14; i++) {
+      // Create date by adding days to today
+      const dateObj = new Date(year, month - 1, day + i);
+      
+      // Format date in YYYY-MM-DD format for comparison (UAE timezone)
+      const yearStr = dateObj.getFullYear();
+      const monthStr = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(dateObj.getDate()).padStart(2, '0');
+      const dateValue = `${yearStr}-${monthStr}-${dayStr}`;
+      
+      // Get day name for display
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayName = dayNames[dateObj.getDay()];
+      const dateNumber = dateObj.getDate().toString();
+      
+      this.availableDates.push({
+        date: dateObj,
+        displayDate: `${dayName} ${dateNumber}`,
+        dayName,
+        dateNumber,
+        dateValue
+      });
+    }
+
+    // Generate all time slots (every 1 hour from 8:00 to 24:00)
+    this.allTimeSlots = [];
+    for (let hour = 8; hour < 24; hour++) {
+      const startTime = `${hour.toString().padStart(2, '0')}:00`;
+      const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+      this.allTimeSlots.push(`${startTime}-${endTime}`);
+    }
+    // Add the last slot ending at 24:00 (midnight)
+    this.allTimeSlots.push('23:00-24:00');
+    // Initially, show all slots (will be filtered when date is selected)
+    this.updateAvailableTimeSlots();
+
+    // Set default selected date to today (index 0)
+    if (this.availableDates.length > 0) {
+      this.selectedDateIndex = 0;
+      this.bookingData.bookingDate = this.availableDates[0].dateValue;
+      // Update available time slots based on selected date
+      this.updateAvailableTimeSlots();
+    }
+
+    // Set default selected time to first available slot
+    // This is handled by updateAvailableTimeSlots() which is called above
+  }
+
+  selectDate(index: number): void {
+    this.selectedDateIndex = index;
+    if (this.availableDates[index]) {
+      this.bookingData.bookingDate = this.availableDates[index].dateValue;
+      // Recalculate and filter available time slots when date changes
+      this.updateAvailableTimeSlots();
+    }
+  }
+
+  selectTime(index: number): void {
+    this.selectedTimeIndex = index;
+    if (this.availableTimeSlots[index]) {
+      this.bookingData.bookingTime = this.availableTimeSlots[index].split('-')[0];
+    }
+  }
+
+  scrollDates(direction: 'left' | 'right'): void {
+    const container = document.getElementById('date-scroll-container');
+    if (container) {
+      const scrollAmount = 200;
+      if (direction === 'left') {
+        container.scrollLeft -= scrollAmount;
+      } else {
+        container.scrollLeft += scrollAmount;
+      }
+    }
+  }
+
+  scrollTimes(direction: 'left' | 'right'): void {
+    const container = document.getElementById('time-scroll-container');
+    if (container) {
+      const scrollAmount = 200;
+      if (direction === 'left') {
+        container.scrollLeft -= scrollAmount;
+      } else {
+        container.scrollLeft += scrollAmount;
+      }
+    }
+  }
+
   generateAvailableTimes(): void {
     // Generate time slots from 9 AM to 6 PM, every 30 minutes
     const times = [];
@@ -260,23 +467,141 @@ export class BookingComponent implements OnInit {
     this.availableTimes = times;
   }
 
+  updateAvailableTimeSlots(): void {
+    // Filter out unavailable time slots based on selected date
+    if (!this.bookingData.bookingDate) {
+      this.availableTimeSlots = this.allTimeSlots;
+      return;
+    }
+    
+    // Get the currently selected time slot value (before filtering)
+    const currentSelectedTime = this.bookingData.bookingTime;
+    
+    // Filter slots to only show available ones (based on 2-hour rule for today)
+    this.availableTimeSlots = this.allTimeSlots.filter(slot => this.isTimeSlotAvailable(slot));
+    
+    // Find the index of the previously selected time in the filtered array
+    if (currentSelectedTime) {
+      const newIndex = this.availableTimeSlots.findIndex(slot => 
+        slot.split('-')[0] === currentSelectedTime
+      );
+      
+      if (newIndex >= 0) {
+        // Selected time is still available, keep it selected
+        this.selectedTimeIndex = newIndex;
+      } else {
+        // Selected time is no longer available, select first available
+        if (this.availableTimeSlots.length > 0) {
+          this.selectedTimeIndex = 0;
+          this.bookingData.bookingTime = this.availableTimeSlots[0].split('-')[0];
+        } else {
+          this.selectedTimeIndex = -1;
+          this.bookingData.bookingTime = '';
+        }
+      }
+    } else {
+      // No time was selected, select first available
+      if (this.availableTimeSlots.length > 0) {
+        this.selectedTimeIndex = 0;
+        this.bookingData.bookingTime = this.availableTimeSlots[0].split('-')[0];
+      } else {
+        this.selectedTimeIndex = -1;
+        this.bookingData.bookingTime = '';
+      }
+    }
+  }
+
+  isTimeSlotAvailable(timeSlot: string): boolean {
+    if (!this.bookingData.bookingDate) {
+      return false;
+    }
+
+    // Extract start time from slot (format: "HH:00-HH:00")
+    const startTime = timeSlot.split('-')[0];
+    const [slotHour, slotMinute] = startTime.split(':').map(Number);
+
+    // Get current date and time in UAE timezone (Asia/Dubai, UTC+4)
+    const now = new Date();
+    const uaeDateString = now.toLocaleDateString('en-CA', { 
+      timeZone: 'Asia/Dubai'
+    }); // Returns YYYY-MM-DD format
+    
+    const uaeTimeString = now.toLocaleTimeString('en-US', { 
+      timeZone: 'Asia/Dubai',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    // Parse UAE time
+    const [currentHour, currentMinute] = uaeTimeString.split(':').map(Number);
+    
+    // Check if the selected date is today (in UAE timezone)
+    // bookingData.bookingDate is in YYYY-MM-DD format
+    const isToday = this.bookingData.bookingDate === uaeDateString;
+
+    if (!isToday) {
+      // For future dates, all time slots are available
+      return true;
+    }
+
+    // For today, calculate the minimum available hour
+    // Add 2 hours to current time and round up to next hour
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    const twoHoursInMinutes = 2 * 60; // 2 hours = 120 minutes
+    const minimumTimeInMinutes = currentTimeInMinutes + twoHoursInMinutes;
+    
+    // Round up to the next hour
+    const minimumHour = Math.ceil(minimumTimeInMinutes / 60);
+    
+    // Time slot is available if its hour is >= the minimum hour
+    return slotHour >= minimumHour;
+  }
+
+  isValidTimeSelected(): boolean {
+    if (this.selectedTimeIndex < 0 || !this.bookingData.bookingTime) {
+      return false;
+    }
+    // Since we filter out unavailable slots, if it's in availableTimeSlots, it's valid
+    return this.availableTimeSlots.length > 0 && this.selectedTimeIndex < this.availableTimeSlots.length;
+  }
+
   submitBooking(): void {
     if (!this.service) return;
 
+    // Validate that a time slot is selected
+    if (this.selectedTimeIndex < 0 || !this.bookingData.bookingTime) {
+      alert('Please select a time slot.');
+      return;
+    }
+
     this.isSubmitting = true;
 
-    // Convert date to ISO string
-    const bookingDate = new Date(this.bookingData.bookingDate + 'T' + this.bookingData.bookingTime + ':00');
+    // Construct booking date in UAE timezone (UTC+4)
+    // The backend expects an ISO 8601 date string
+    const dateStr = this.bookingData.bookingDate; // Format: YYYY-MM-DD (UAE date)
+    const timeStr = this.bookingData.bookingTime; // Format: HH:MM (UAE time)
+    
+    // Create ISO string with UAE timezone offset (+04:00)
+    // This ensures the backend receives the correct date/time in UAE timezone
+    const bookingDateISO = `${dateStr}T${timeStr}:00+04:00`;
 
     const bookingRequest: BookingRequest = {
       services: [{
         serviceId: this.service._id,
         quantity: 1
       }],
-      bookingDate: bookingDate.toISOString(),
-      bookingTime: this.bookingData.bookingTime,
+      bookingDate: bookingDateISO,
+      bookingTime: timeStr,
       customerNotes: this.bookingData.customerNotes
     };
+
+    console.log('Creating booking with:', {
+      bookingDate: dateStr,
+      bookingTime: timeStr,
+      bookingDateISO: bookingDateISO,
+      serviceId: this.service._id
+    });
 
     this.apiService.createBooking(bookingRequest).subscribe({
       next: (booking: any) => {
@@ -292,7 +617,10 @@ export class BookingComponent implements OnInit {
       error: (error: any) => {
         console.error('Error creating booking:', error);
         this.isSubmitting = false;
-        alert('Failed to create booking. Please try again.');
+        
+        // Show detailed error message
+        const errorMessage = error.error?.message || error.message || 'Failed to create booking. Please try again.';
+        alert(errorMessage);
       }
     });
   }

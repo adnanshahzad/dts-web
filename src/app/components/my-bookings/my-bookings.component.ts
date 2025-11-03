@@ -120,14 +120,125 @@ import { AuthService } from '../../services/auth.service';
           </div>
         </div>
       </div>
+
+      <!-- Booking Details Modal -->
+      <div *ngIf="selectedBooking" 
+           class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
+           (click)="closeModal()"
+           style="background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);">
+        <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full modal-container overflow-hidden"
+             (click)="$event.stopPropagation()">
+            <div class="bg-white px-6 pt-6 pb-4 rounded-t-xl">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold text-gray-900">Booking Details</h3>
+                <button 
+                  (click)="closeModal()"
+                  class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 rounded-lg p-1 transition-colors">
+                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div class="space-y-4">
+                <!-- Service Name(s) -->
+                <div class="border-b border-gray-200 pb-3">
+                  <p class="text-sm font-medium text-gray-500 mb-1">Service{{ selectedBooking.services.length > 1 ? 's' : '' }}</p>
+                  <div class="space-y-2">
+                    <p *ngFor="let service of selectedBooking.services" class="text-lg font-semibold text-gray-900">
+                      {{ service.serviceName }}
+                      <span *ngIf="service.quantity > 1" class="text-sm font-normal text-gray-600">(x{{ service.quantity }})</span>
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Date -->
+                <div class="flex items-center border-b border-gray-200 pb-3">
+                  <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Date</p>
+                    <p class="text-base text-gray-900">{{ formatDate(selectedBooking.bookingDate) }}</p>
+                  </div>
+                </div>
+
+                <!-- Time -->
+                <div class="flex items-center border-b border-gray-200 pb-3">
+                  <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Time</p>
+                    <p class="text-base text-gray-900">{{ selectedBooking.bookingTime }}</p>
+                  </div>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center border-b border-gray-200 pb-3">
+                  <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-500 mb-1">Status</p>
+                    <span [class]="getStatusClass(selectedBooking.status)" class="inline-block">
+                      {{ getStatusText(selectedBooking.status) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Total -->
+                <div class="flex items-center border-b border-gray-200 pb-3">
+                  <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Total</p>
+                    <p class="text-xl font-bold text-primary-600">{{ selectedBooking.totalPrice | currency:'AED' }}</p>
+                  </div>
+                </div>
+
+                <!-- Customer Notes -->
+                <div *ngIf="selectedBooking.customerNotes" class="bg-gray-50 rounded-lg p-3 border-b border-gray-200 pb-3">
+                  <p class="text-sm font-medium text-gray-500 mb-1">Your Notes</p>
+                  <p class="text-sm text-gray-700">{{ selectedBooking.customerNotes }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 flex justify-end rounded-b-xl">
+              <button 
+                (click)="closeModal()"
+                class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    .modal-container {
+      animation: modalFadeIn 0.2s ease-out;
+    }
+  `]
 })
 export class MyBookingsComponent implements OnInit {
   bookings: Booking[] = [];
   isLoading = true;
   showSuccessMessage = false;
+  selectedBooking: Booking | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -225,7 +336,11 @@ export class MyBookingsComponent implements OnInit {
   }
 
   viewBookingDetails(booking: Booking): void {
-    alert(`Booking Details:\n\nID: ${booking._id}\nDate: ${this.formatDate(booking.bookingDate)}\nTime: ${booking.bookingTime}\nStatus: ${booking.status}\nTotal: AED ${booking.totalPrice}`);
+    this.selectedBooking = booking;
+  }
+
+  closeModal(): void {
+    this.selectedBooking = null;
   }
 
   goToServices(): void {
