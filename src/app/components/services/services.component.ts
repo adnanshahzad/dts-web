@@ -1,14 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { ApiService, Service } from '../../services/api.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ApiService, Service, ServiceCategory } from '../../services/api.service';
 import { environment } from '../../../environments/environment';
 
-interface ServiceCategory {
-  _id: string;
-  name: string;
-  description?: string;
-}
 
 @Component({
   selector: 'app-services',
@@ -92,16 +87,62 @@ interface ServiceCategory {
 })
 export class ServicesComponent implements OnInit {
   services: Service[] = [];
+  categories: ServiceCategory[] = [];
   isLoading = true;
+  selectedCategory: string | null = null;
 
-  constructor(private apiService: ApiService, private router: Router) {}
+  constructor(
+    private apiService: ApiService, 
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.loadServices();
+    // Get initial route params
+    this.selectedCategory = this.route.snapshot.params['category'] || null;
+    
+    // Load categories first
+    this.loadCategories();
+    
+    // Subscribe to route param changes
+    this.route.params.subscribe(params => {
+      this.selectedCategory = params['category'] || null;
+      // Load services when route params change (categories should be loaded by then)
+      this.loadServices();
+    });
+  }
+
+  loadCategories(): void {
+    this.apiService.getServiceCategories().subscribe({
+      next: (categories: ServiceCategory[]) => {
+        this.categories = categories;
+        // After categories are loaded, load services with the current category filter
+        this.loadServices();
+      },
+      error: (error: any) => {
+        console.error('Error loading categories:', error);
+        // Still load services even if categories fail (will show all services)
+        this.loadServices();
+      }
+    });
   }
 
   loadServices(): void {
-    this.apiService.getServices().subscribe({
+    this.isLoading = true;
+    
+    let categoryId: string | undefined;
+    
+    // If a category name is provided in query params, find the matching category ID
+    if (this.selectedCategory) {
+      const category = this.categories.find(
+        cat => cat.name.toLowerCase() === this.selectedCategory?.toLowerCase()
+      );
+      if (category) {
+        categoryId = category._id;
+      }
+    }
+
+    this.apiService.getServices(categoryId).subscribe({
       next: (services: Service[]) => {
         this.services = services;
         this.isLoading = false;

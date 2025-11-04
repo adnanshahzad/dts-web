@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -11,6 +11,16 @@ interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Notification {
+  _id: string;
+  type: 'booking_accepted' | 'booking_started' | 'booking_completed' | 'booking_cancelled' | 'payment_received';
+  title: string;
+  message: string;
+  read: boolean;
+  bookingId?: string;
+  createdAt: string;
 }
 
 @Component({
@@ -35,15 +45,19 @@ interface User {
           <div class="hidden md:flex items-center space-x-8">
             <ng-container *ngIf="isActiveRoute('/'); else appLinks">
               <button (click)="scrollTo('about')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">About us</button>
-              <button (click)="scrollTo('services')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Our Services</button>
+              <button (click)="goToSalon()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Salon</button>
+              <button (click)="goToSpa()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Spa</button>
               <button (click)="scrollTo('products')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Products</button>
               <button (click)="scrollTo('why')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Why us</button>
               <button (click)="scrollTo('contact')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Contact us</button>
             </ng-container>
             <ng-template #appLinks>
-              <button (click)="goHome()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'">Home</button>
-              <button (click)="goToServices()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'">Services</button>
-              <button (click)="goToMyBookings()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/my-bookings') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'" *ngIf="isAuthenticated()">My Bookings</button>
+              <button (click)="scrollTo('about')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">About us</button>
+              <button (click)="goToSalon()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') && isCategoryActive('salon') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'">Salon</button>
+              <button (click)="goToSpa()" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') && isCategoryActive('spa') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900'">Spa</button>
+              <button (click)="scrollTo('products')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Products</button>
+              <button (click)="scrollTo('why')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Why us</button>
+              <button (click)="scrollTo('contact')" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Contact us</button>
             </ng-template>
           </div>
 
@@ -58,20 +72,100 @@ interface User {
               </button>
             </div>
 
-            <div *ngIf="isAuthenticated()" class="flex items-center space-x-4">
-              <div class="flex items-center space-x-2">
+            <!-- Notifications -->
+            <div *ngIf="isAuthenticated()" class="relative" #notificationContainer>
+              <button (click)="toggleNotificationMenu()" class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                <span *ngIf="getUnreadCount() > 0" class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]">
+                  {{ getUnreadCount() > 9 ? '9+' : getUnreadCount() }}
+                </span>
+              </button>
+              
+              <!-- Notifications Dropdown -->
+              <div *ngIf="showNotificationMenu" class="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 max-h-96 overflow-auto">
+                <div class="py-1" role="menu" aria-orientation="vertical">
+                  <!-- Header -->
+                  <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                    <button *ngIf="getUnreadCount() > 0" (click)="markAllAsRead()" class="text-xs text-primary-600 hover:text-primary-700">Mark all as read</button>
+                  </div>
+                  
+                  <!-- Notifications List -->
+                  <div *ngIf="notifications.length === 0" class="px-4 py-8 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">No notifications</p>
+                  </div>
+                  
+                  <div *ngFor="let notification of notifications" 
+                       (click)="handleNotificationClick(notification)"
+                       class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                       [class.bg-primary-50]="!notification.read"
+                       role="menuitem">
+                    <div class="flex items-start space-x-3">
+                      <div [class]="getNotificationIconClass(notification.type)" class="flex-shrink-0 mt-0.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path *ngIf="notification.type === 'booking_accepted'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path *ngIf="notification.type === 'booking_started'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          <path *ngIf="notification.type === 'booking_completed'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path *ngIf="notification.type === 'booking_cancelled'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
+                        <p class="text-sm text-gray-500 mt-1">{{ notification.message }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ getTimeAgo(notification.createdAt) }}</p>
+                      </div>
+                      <div *ngIf="!notification.read" class="flex-shrink-0">
+                        <div class="h-2 w-2 rounded-full bg-primary-600"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="isAuthenticated()" class="relative" #userMenuContainer>
+              <button (click)="toggleUserMenu()" class="flex items-center space-x-2 focus:outline-none">
                 <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
                   <span class="text-primary-600 font-medium text-sm">
                     {{ getInitials() }}
                   </span>
                 </div>
-                <span class="text-sm font-medium text-gray-700">
-                  {{ currentUser?.firstname }} {{ currentUser?.lastname }}
-                </span>
-              </div>
-              <button (click)="logout()" class="text-sm text-gray-600 hover:text-gray-900">
-                Logout
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
+              
+              <!-- Dropdown Menu -->
+              <div *ngIf="showUserMenu" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                <div class="py-1" role="menu" aria-orientation="vertical">
+                  <!-- User Info -->
+                  <div class="px-4 py-3 border-b border-gray-200">
+                    <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstname }} {{ currentUser?.lastname }}</p>
+                    <p class="text-sm text-gray-500 truncate">{{ currentUser?.email }}</p>
+                  </div>
+                  
+                  <!-- My Bookings -->
+                  <button (click)="goToMyBookings(); closeUserMenu()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2" role="menuitem">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>My Bookings</span>
+                  </button>
+                  
+                  <!-- Logout -->
+                  <button (click)="logout(); closeUserMenu()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2" role="menuitem">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -90,14 +184,22 @@ interface User {
           <div class="space-y-2">
             <ng-container *ngIf="isActiveRoute('/'); else mobileAppLinks">
               <button (click)="scrollTo('about'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">About us</button>
-              <button (click)="scrollTo('services'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Our Services</button>
+              <button (click)="goToSalon(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Salon</button>
+              <button (click)="goToSpa(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Spa</button>
               <button (click)="scrollTo('products'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Products</button>
               <button (click)="scrollTo('why'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Why us</button>
               <button (click)="scrollTo('contact'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Contact us</button>
+              <button (click)="goToMyBookings(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/my-bookings') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'" *ngIf="isAuthenticated()">My Bookings</button>
             </ng-container>
             <ng-template #mobileAppLinks>
               <button (click)="goHome(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'">Home</button>
+              <button (click)="scrollTo('about'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">About us</button>
               <button (click)="goToServices(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'">Services</button>
+              <button (click)="goToSalon(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') && isCategoryActive('salon') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'">Salon</button>
+              <button (click)="goToSpa(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/services') && isCategoryActive('spa') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'">Spa</button>
+              <button (click)="scrollTo('products'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Products</button>
+              <button (click)="scrollTo('why'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Why us</button>
+              <button (click)="scrollTo('contact'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200">Contact us</button>
               <button (click)="goToMyBookings(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors duration-200" [class]="isActiveRoute('/my-bookings') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'" *ngIf="isAuthenticated()">My Bookings</button>
             </ng-template>
 
@@ -133,13 +235,27 @@ interface User {
   styles: []
 })
 export class NavigationComponent implements OnInit {
+  @ViewChild('userMenuContainer') userMenuContainer!: ElementRef;
+  @ViewChild('notificationContainer') notificationContainer!: ElementRef;
   currentUser: User | null = null;
   showMobileMenu = false;
+  showUserMenu = false;
+  showNotificationMenu = false;
+  notifications: Notification[] = [];
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadUserFromStorage();
+    if (this.isAuthenticated()) {
+      this.loadNotifications();
+      // Poll for new notifications every 30 seconds
+      setInterval(() => {
+        if (this.isAuthenticated()) {
+          this.loadNotifications();
+        }
+      }, 30000);
+    }
   }
 
   private loadUserFromStorage(): void {
@@ -174,6 +290,20 @@ export class NavigationComponent implements OnInit {
     this.router.navigate(['/services']);
   }
 
+  goToSalon(): void {
+    this.router.navigate(['/services', 'salon']);
+  }
+
+  goToSpa(): void {
+    this.router.navigate(['/services', 'spa']);
+  }
+
+  isCategoryActive(category: string): boolean {
+    const currentUrl = this.router.url;
+    // Check if URL is /services/:category and category matches
+    return currentUrl === `/services/${category}`;
+  }
+
   goToMyBookings(): void {
     this.router.navigate(['/my-bookings']);
   }
@@ -200,6 +330,117 @@ export class NavigationComponent implements OnInit {
 
   toggleMobileMenu(): void {
     this.showMobileMenu = !this.showMobileMenu;
+  }
+
+  toggleUserMenu(): void {
+    this.showUserMenu = !this.showUserMenu;
+  }
+
+  closeUserMenu(): void {
+    this.showUserMenu = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.showUserMenu && this.userMenuContainer) {
+      const clickedInside = this.userMenuContainer.nativeElement.contains(event.target);
+      if (!clickedInside) {
+        this.showUserMenu = false;
+      }
+    }
+    if (this.showNotificationMenu && this.notificationContainer) {
+      const clickedInside = this.notificationContainer.nativeElement.contains(event.target);
+      if (!clickedInside) {
+        this.showNotificationMenu = false;
+      }
+    }
+  }
+
+  toggleNotificationMenu(): void {
+    this.showNotificationMenu = !this.showNotificationMenu;
+    if (this.showNotificationMenu) {
+      // Mark all as read when opening
+      // this.markAllAsRead();
+    }
+  }
+
+  loadNotifications(): void {
+    // TODO: Replace with actual API call
+    // For now, using mock data
+    // In production, this would be: this.apiService.getNotifications().subscribe(...)
+    const mockNotifications: Notification[] = [
+      {
+        _id: '1',
+        type: 'booking_accepted',
+        title: 'Booking Accepted',
+        message: 'Your booking for "Deep Tissue Massage" on Jan 15, 2024 at 2:00 PM has been accepted.',
+        read: false,
+        bookingId: 'booking123',
+        createdAt: new Date(Date.now() - 5 * 60000).toISOString() // 5 minutes ago
+      },
+      {
+        _id: '2',
+        type: 'booking_started',
+        title: 'Service Started',
+        message: 'Your therapist has started your "Swedish Massage" session.',
+        read: false,
+        bookingId: 'booking124',
+        createdAt: new Date(Date.now() - 15 * 60000).toISOString() // 15 minutes ago
+      },
+      {
+        _id: '3',
+        type: 'booking_completed',
+        title: 'Service Completed',
+        message: 'Your "Facial Treatment" session has been completed. Thank you!',
+        read: true,
+        bookingId: 'booking125',
+        createdAt: new Date(Date.now() - 2 * 3600000).toISOString() // 2 hours ago
+      }
+    ];
+    this.notifications = mockNotifications;
+  }
+
+  getUnreadCount(): number {
+    return this.notifications.filter(n => !n.read).length;
+  }
+
+  markAllAsRead(): void {
+    this.notifications.forEach(n => n.read = true);
+    // TODO: Call API to mark all as read
+  }
+
+  handleNotificationClick(notification: Notification): void {
+    if (!notification.read) {
+      notification.read = true;
+      // TODO: Call API to mark as read
+    }
+    if (notification.bookingId) {
+      this.router.navigate(['/my-bookings']);
+      this.showNotificationMenu = false;
+    }
+  }
+
+  getNotificationIconClass(type: string): string {
+    const classes: { [key: string]: string } = {
+      'booking_accepted': 'text-green-600',
+      'booking_started': 'text-blue-600',
+      'booking_completed': 'text-purple-600',
+      'booking_cancelled': 'text-red-600',
+      'payment_received': 'text-yellow-600'
+    };
+    return classes[type] || 'text-gray-600';
+  }
+
+  getTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return date.toLocaleDateString();
   }
 
   scrollTo(sectionId: string): void {

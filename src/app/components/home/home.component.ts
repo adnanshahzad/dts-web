@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ApiService, Service } from '../../services/api.service';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -35,7 +33,7 @@ import { environment } from '../../../environments/environment';
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <button (click)="navigateToServices()" class="bg-white text-primary-600 hover:bg-gray-100 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Browse Services</button>
-              <button (click)="navigateToLogin()" class="border-2 border-white text-white hover:bg-white hover:text-primary-600 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Sign In</button>
+              <button *ngIf="!isAuthenticated()" (click)="navigateToLogin()" class="border-2 border-white text-white hover:bg-white hover:text-primary-600 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Sign In</button>
             </div>
           </div>
         </div>
@@ -101,7 +99,7 @@ import { environment } from '../../../environments/environment';
       </section>
 
       <!-- Products/Oils Section -->
-      <section id="products" class="bg-purple-100/70 py-12">
+      <section id="products" class="bg-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 class="text-3xl font-bold text-center text-purple-900 mb-8">Aromatherapy Oils</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -137,39 +135,6 @@ import { environment } from '../../../environments/environment';
         </div>
       </section>
 
-      <!-- Services Preview -->
-      <section id="services" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">Our Services</h2>
-          <div *ngIf="isLoading" class="text-center py-10">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          </div>
-          <div *ngIf="!isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div *ngFor="let service of previewServices" class="bg-white rounded-xl shadow-md overflow-hidden">
-              <div class="h-44 bg-gray-200">
-                <img [src]="getServiceImage(service)" [alt]="service.name" class="w-full h-full object-cover" (error)="onImageError($event)" />
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-semibold text-gray-900 mb-1">{{ service.name }}</h3>
-                <p class="text-gray-600 mb-4 line-clamp-3">{{ service.description || 'No description available' }}</p>
-                <div class="flex justify-between items-center mb-4">
-                  <span class="text-2xl font-bold text-primary-600">{{ 'AED ' + service.price }}</span>
-                  <span class="text-sm text-gray-500">{{ service.duration }} min</span>
-                </div>
-                <div class="grid grid-cols-3 gap-2 text-sm">
-                  <a [href]="'tel:+971521608488'" class="text-center border rounded-md py-2 hover:bg-gray-50">Call</a>
-                  <a [href]="'https://wa.me/971521608488'" target="_blank" class="text-center border rounded-md py-2 hover:bg-gray-50">WhatsApp</a>
-                  <button (click)="book(service)" class="bg-primary-600 hover:bg-primary-700 text-white rounded-md py-2">Book</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="text-center mt-10">
-            <button (click)="navigateToServices()" class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-medium">View All Services</button>
-          </div>
-        </div>
-      </section>
-
       <!-- Why Choose Us -->
       <section id="why" class="bg-purple-100/70 py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8 items-center">
@@ -188,9 +153,18 @@ import { environment } from '../../../environments/environment';
       <section id="contact" class="relative py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
           <h2 class="text-3xl font-bold text-center text-gray-900 mb-10">Contact us</h2>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <!-- Instagram -->
+            <a href="https://www.instagram.com/dailytherapyspa" target="_blank" class="border rounded-xl p-6 text-center hover:shadow-md bg-white/80 backdrop-blur">
+              <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 text-white flex items-center justify-center shadow">
+                <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </div>
+              <div class="font-semibold">Instagram</div>
+            </a>
             <!-- Facebook -->
-            <a href="https://facebook.com" target="_blank" class="border rounded-xl p-6 text-center hover:shadow-md bg-white/80 backdrop-blur">
+            <a href="https://www.facebook.com/people/DTS-Home-Care-Cleaning-and-spa/61552699681649/" target="_blank" class="border rounded-xl p-6 text-center hover:shadow-md bg-white/80 backdrop-blur">
               <div class="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center shadow">
                 <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor" aria-hidden="true">
                   <path d="M22 12a10 10 0 1 0-11.6 9.87v-6.98H7.9V12h2.5V9.8c0-2.46 1.46-3.82 3.7-3.82 1.07 0 2.2.19 2.2.19v2.42h-1.24c-1.22 0-1.6.76-1.6 1.54V12h2.73l-.44 2.89h-2.3v6.98A10 10 0 0 0 22 12z" />
@@ -248,23 +222,9 @@ import { environment } from '../../../environments/environment';
   styles: []
 })
 export class HomeComponent implements OnInit {
-  previewServices: Service[] = [];
-  isLoading = true;
-
-  constructor(private router: Router, private api: ApiService) {}
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
-    this.api.getServices().subscribe({
-      next: (services: Service[]) => {
-        this.previewServices = services.slice(0, 6);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.previewServices = [];
-        this.isLoading = false;
-      }
-    });
-
   }
 
   navigateToServices(): void {
@@ -279,18 +239,7 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/register']);
   }
 
-  book(service: Service): void {
-    this.router.navigate(['/booking', service._id]);
-  }
-
-  getServiceImage(service: Service): string {
-    if (service.images && service.images.length > 0) {
-      return `${environment.apiUrl}/${service.images[0]}`;
-    }
-    return 'https://images.unsplash.com/photo-1552693673-1bf958298935?q=80&w=1200&auto=format&fit=crop';
-  }
-
-  onImageError(event: any): void {
-    event.target.src = 'https://images.unsplash.com/photo-1552693673-1bf958298935?q=80&w=1200&auto=format&fit=crop';
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('access_token');
   }
 }

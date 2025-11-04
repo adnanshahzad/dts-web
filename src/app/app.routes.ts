@@ -9,6 +9,7 @@ import { BookingComponent } from './components/booking/booking.component';
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'services', component: ServicesComponent },
+  { path: 'services/:category', component: ServicesComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'booking/:id', component: BookingComponent },
