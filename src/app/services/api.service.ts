@@ -73,6 +73,16 @@ export interface BookingsResponse {
   limit: number;
 }
 
+export interface Notification {
+  _id: string;
+  type: 'booking_accepted' | 'booking_started' | 'booking_completed' | 'booking_cancelled' | 'payment_received';
+  title: string;
+  message: string;
+  read: boolean;
+  bookingId?: string;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -139,5 +149,18 @@ export class ApiService {
 
   getBookingById(id: string): Observable<Booking> {
     return this.http.get<Booking>(`${this.API_URL}/v1/bookings/${id}`, { headers: this.getHeaders() });
+  }
+
+  // Notifications
+  getNotifications(): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.API_URL}/v1/notifications`, { headers: this.getHeaders() });
+  }
+
+  markNotificationAsRead(notificationId: string): Observable<Notification> {
+    return this.http.patch<Notification>(`${this.API_URL}/v1/notifications/${notificationId}/read`, {}, { headers: this.getHeaders() });
+  }
+
+  markAllNotificationsAsRead(): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.API_URL}/v1/notifications/read-all`, {}, { headers: this.getHeaders() });
   }
 }

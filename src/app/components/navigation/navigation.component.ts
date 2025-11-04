@@ -1,6 +1,7 @@
-import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ApiService, Notification } from '../../services/api.service';
 
 interface User {
   _id: string;
@@ -11,16 +12,6 @@ interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-interface Notification {
-  _id: string;
-  type: 'booking_accepted' | 'booking_started' | 'booking_completed' | 'booking_cancelled' | 'payment_received';
-  title: string;
-  message: string;
-  read: boolean;
-  bookingId?: string;
-  createdAt: string;
 }
 
 @Component({
@@ -234,7 +225,7 @@ interface Notification {
   `,
   styles: []
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements OnInit, OnDestroy {
   @ViewChild('userMenuContainer') userMenuContainer!: ElementRef;
   @ViewChild('notificationContainer') notificationContainer!: ElementRef;
   currentUser: User | null = null;
@@ -242,19 +233,26 @@ export class NavigationComponent implements OnInit {
   showUserMenu = false;
   showNotificationMenu = false;
   notifications: Notification[] = [];
+  private notificationInterval?: any;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadUserFromStorage();
     if (this.isAuthenticated()) {
       this.loadNotifications();
       // Poll for new notifications every 30 seconds
-      setInterval(() => {
+      this.notificationInterval = setInterval(() => {
         if (this.isAuthenticated()) {
           this.loadNotifications();
         }
       }, 30000);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationInterval) {
+      clearInterval(this.notificationInterval);
     }
   }
 
@@ -365,39 +363,15 @@ export class NavigationComponent implements OnInit {
   }
 
   loadNotifications(): void {
-    // TODO: Replace with actual API call
-    // For now, using mock data
-    // In production, this would be: this.apiService.getNotifications().subscribe(...)
-    const mockNotifications: Notification[] = [
-      {
-        _id: '1',
-        type: 'booking_accepted',
-        title: 'Booking Accepted',
-        message: 'Your booking for "Deep Tissue Massage" on Jan 15, 2024 at 2:00 PM has been accepted.',
-        read: false,
-        bookingId: 'booking123',
-        createdAt: new Date(Date.now() - 5 * 60000).toISOString() // 5 minutes ago
+    this.apiService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notifications = notifications;
       },
-      {
-        _id: '2',
-        type: 'booking_started',
-        title: 'Service Started',
-        message: 'Your therapist has started your "Swedish Massage" session.',
-        read: false,
-        bookingId: 'booking124',
-        createdAt: new Date(Date.now() - 15 * 60000).toISOString() // 15 minutes ago
-      },
-      {
-        _id: '3',
-        type: 'booking_completed',
-        title: 'Service Completed',
-        message: 'Your "Facial Treatment" session has been completed. Thank you!',
-        read: true,
-        bookingId: 'booking125',
-        createdAt: new Date(Date.now() - 2 * 3600000).toISOString() // 2 hours ago
+      error: (error: any) => {
+        console.error('Error loading notifications:', error);
+        // Keep existing notifications on error
       }
-    ];
-    this.notifications = mockNotifications;
+    });
   }
 
   getUnreadCount(): number {
@@ -405,14 +379,26 @@ export class NavigationComponent implements OnInit {
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach(n => n.read = true);
-    // TODO: Call API to mark all as read
+    this.apiService.markAllNotificationsAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(n => n.read = true);
+      },
+      error: (error: any) => {
+        console.error('Error marking all notifications as read:', error);
+      }
+    });
   }
 
   handleNotificationClick(notification: Notification): void {
     if (!notification.read) {
       notification.read = true;
-      // TODO: Call API to mark as read
+      this.apiService.markNotificationAsRead(notification._id).subscribe({
+        error: (error: any) => {
+          console.error('Error marking notification as read:', error);
+          // Revert the read status if API call fails
+          notification.read = false;
+        }
+      });
     }
     if (notification.bookingId) {
       this.router.navigate(['/my-bookings']);
