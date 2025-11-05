@@ -136,6 +136,11 @@ export class LoginComponent {
           localStorage.setItem('refresh_token', response.refreshToken);
           localStorage.setItem('current_user', JSON.stringify(response.user));
           
+          // Dispatch login event to notify other components (like navigation)
+          window.dispatchEvent(new CustomEvent('userLoggedIn', {
+            detail: response.user
+          }));
+          
           this.isLoading = false;
           
           // Redirect to services page

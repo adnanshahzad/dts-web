@@ -163,4 +163,33 @@ export class ApiService {
   markAllNotificationsAsRead(): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.API_URL}/v1/notifications/read-all`, {}, { headers: this.getHeaders() });
   }
+
+  // Customer Profile
+  getCustomerProfile(): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/customers/profile`, { headers: this.getHeaders() });
+  }
+
+  addAddress(address: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/customers/addresses`, address, { headers: this.getHeaders() });
+  }
+
+  updateAddress(index: number, address: any): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/customers/addresses/${index}`, address, { headers: this.getHeaders() });
+  }
+
+  deleteAddress(index: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_URL}/customers/addresses/${index}`, { headers: this.getHeaders() });
+  }
+
+  setDefaultAddress(index: number): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/customers/addresses/${index}/set-default`, {}, { headers: this.getHeaders() });
+  }
+
+  updateCustomerProfile(profileData: { firstname?: string; lastname?: string; phone?: string; whatsapp?: string }): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/customers/profile`, profileData, { headers: this.getHeaders() });
+  }
+
+  changePassword(passwordData: { currentPassword: string; newPassword: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/change-password`, passwordData, { headers: this.getHeaders() });
+  }
 }

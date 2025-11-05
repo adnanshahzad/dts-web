@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ApiService, Notification } from '../../services/api.service';
@@ -140,6 +140,14 @@ interface User {
                     <p class="text-sm text-gray-500 truncate">{{ currentUser?.email }}</p>
                   </div>
                   
+                  <!-- Profile -->
+                  <button (click)="goToProfile(); closeUserMenu()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2" role="menuitem">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profile</span>
+                  </button>
+                  
                   <!-- My Bookings -->
                   <button (click)="goToMyBookings(); closeUserMenu()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2" role="menuitem">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,11 +242,24 @@ export class NavigationComponent implements OnInit, OnDestroy {
   showNotificationMenu = false;
   notifications: Notification[] = [];
   private notificationInterval?: any;
+  private profileUpdateHandler = () => this.handleProfileUpdate();
+  private loginHandler = () => this.handleLogin();
+  private storageChangeHandler = (event: StorageEvent) => this.handleStorageChange(event);
 
-  constructor(private router: Router, private apiService: ApiService) {}
+  constructor(
+    private router: Router,
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadUserFromStorage();
+    
+    // If authenticated but no user data, try to fetch it
+    if (this.isAuthenticated() && !this.currentUser) {
+      this.fetchUserData();
+    }
+    
     if (this.isAuthenticated()) {
       this.loadNotifications();
       // Poll for new notifications every 30 seconds
@@ -248,12 +269,74 @@ export class NavigationComponent implements OnInit, OnDestroy {
         }
       }, 30000);
     }
+    
+    // Listen for profile updates to refresh user data
+    window.addEventListener('userProfileUpdated', this.profileUpdateHandler);
+    
+    // Listen for login events (when user logs in on another component)
+    window.addEventListener('userLoggedIn', this.loginHandler);
+    
+    // Listen for storage changes (when localStorage is updated from another tab/component)
+    window.addEventListener('storage', this.storageChangeHandler);
   }
 
   ngOnDestroy(): void {
     if (this.notificationInterval) {
       clearInterval(this.notificationInterval);
     }
+    // Remove event listeners
+    window.removeEventListener('userProfileUpdated', this.profileUpdateHandler);
+    window.removeEventListener('userLoggedIn', this.loginHandler);
+    window.removeEventListener('storage', this.storageChangeHandler);
+  }
+
+  private handleProfileUpdate(): void {
+    // Reload user data from localStorage after profile update
+    this.loadUserFromStorage();
+    // Force change detection to update the UI
+    this.cdr.detectChanges();
+  }
+
+  private handleLogin(): void {
+    // Reload user data when login event is fired
+    this.loadUserFromStorage();
+    this.cdr.detectChanges();
+  }
+
+  private handleStorageChange(event: StorageEvent): void {
+    // Reload user data when localStorage changes (from another tab or component)
+    if (event.key === 'current_user') {
+      this.loadUserFromStorage();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private fetchUserData(): void {
+    // Fetch user data from API if not in localStorage
+    this.apiService.getCustomerProfile().subscribe({
+      next: (response: any) => {
+        if (response.user) {
+          const userData = {
+            _id: response.user._id,
+            email: response.user.email,
+            firstname: response.user.firstname,
+            lastname: response.user.lastname,
+            role: response.user.role,
+            isActive: true,
+            createdAt: '',
+            updatedAt: ''
+          };
+          localStorage.setItem('current_user', JSON.stringify(userData));
+          this.currentUser = userData;
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {
+        // If customer profile doesn't exist, try to get user profile
+        // This might be needed for non-customer users
+        console.log('Could not fetch user profile');
+      }
+    });
   }
 
   private loadUserFromStorage(): void {
@@ -261,6 +344,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
     if (user) {
       try {
         this.currentUser = JSON.parse(user);
+        this.cdr.detectChanges();
       } catch (error) {
         this.clearAuthData();
       }
@@ -304,6 +388,10 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   goToMyBookings(): void {
     this.router.navigate(['/my-bookings']);
+  }
+
+  goToProfile(): void {
+    this.router.navigate(['/profile']);
   }
 
   goToLogin(): void {
