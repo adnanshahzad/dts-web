@@ -195,9 +195,9 @@ interface CustomerProfile {
               </button>
             </div>
             
-            <div *ngIf="customerProfile?.addresses && customerProfile?.addresses.length > 0" class="space-y-4">
+            <div *ngIf="(customerProfile?.addresses?.length ?? 0) > 0" class="space-y-4">
               <div
-                *ngFor="let address of customerProfile?.addresses; let i = index"
+                *ngFor="let address of customerProfile!.addresses!; let i = index"
                 class="border border-gray-200 rounded-lg p-4 bg-gray-50"
               >
                 <div class="flex items-start justify-between">
@@ -218,7 +218,7 @@ interface CustomerProfile {
               </div>
             </div>
             
-            <div *ngIf="!customerProfile?.addresses || customerProfile?.addresses?.length === 0" class="text-center py-8 text-gray-500">
+            <div *ngIf="(customerProfile?.addresses?.length ?? 0) === 0" class="text-center py-8 text-gray-500">
               <p class="text-sm">No addresses added yet. Click "+ Add Address" to add one.</p>
             </div>
           </div>
