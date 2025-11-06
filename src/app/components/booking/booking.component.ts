@@ -49,9 +49,32 @@ import { environment } from '../../../environments/environment';
             <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ service.name }}</h3>
             <p class="text-gray-600 mb-4">{{ service.description || 'No description available' }}</p>
 
-            <div class="flex justify-between items-center mb-4">
-              <span class="text-2xl font-bold text-primary-600">AED {{ service.price }}</span>
-              <span class="text-sm text-gray-500">{{ service.duration }} minutes</span>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Select Duration & Price:
+              </label>
+              <div class="space-y-2">
+                <div *ngFor="let duration of service.durations; let i = index" 
+                     class="flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-colors"
+                     [class.border-primary-600]="selectedDurationIndex === i"
+                     [class.bg-primary-50]="selectedDurationIndex === i"
+                     [class.border-gray-300]="selectedDurationIndex !== i"
+                     [class.bg-white]="selectedDurationIndex !== i"
+                     (click)="selectDuration(i)">
+                  <div class="flex items-center gap-3">
+                    <input type="radio" 
+                           [name]="'duration-' + service._id" 
+                           [value]="i" 
+                           [checked]="selectedDurationIndex === i"
+                           (change)="selectDuration(i)"
+                           class="w-4 h-4 text-primary-600 focus:ring-primary-500">
+                    <div>
+                      <span class="font-medium text-gray-900">{{ duration.duration }} minutes</span>
+                      <span class="text-gray-500 ml-2">- AED {{ duration.price }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div *ngIf="service.notes" class="bg-gray-50 p-3 rounded-lg">
@@ -223,11 +246,11 @@ import { environment } from '../../../environments/environment';
                 </div>
                 <div class="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Duration:</span>
-                  <span>{{ service.duration }} minutes</span>
+                  <span>{{ getSelectedDuration()?.duration || 0 }} minutes</span>
                 </div>
                 <div class="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Price:</span>
-                  <span>AED {{ service.price }}</span>
+                  <span>AED {{ getSelectedDuration()?.price || 0 }}</span>
                 </div>
                 <div *ngIf="bookingData.bookingDate" class="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Date:</span>
@@ -242,7 +265,7 @@ import { environment } from '../../../environments/environment';
               <!-- Submit Button -->
               <button
                 type="submit"
-                [disabled]="!bookingForm.valid || isSubmitting || !isValidTimeSelected()"
+                [disabled]="!bookingForm.valid || isSubmitting || !isValidTimeSelected() || !service || !service.durations || service.durations.length === 0"
                 class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
               >
                 <span *ngIf="!isSubmitting">Confirm Booking</span>
@@ -283,6 +306,7 @@ export class BookingComponent implements OnInit {
   minDate = '';
   maxDate = '';
   availableTimes: string[] = [];
+  selectedDurationIndex = 0; // Default to first duration
 
   // Date and time selection
   availableDates: Array<{ date: Date; displayDate: string; dayName: string; dateNumber: string; dateValue: string }> = [];
@@ -341,9 +365,12 @@ export class BookingComponent implements OnInit {
     this.apiService.getServiceById(serviceId).subscribe({
       next: (service: Service) => {
         this.service = service;
+        // Set default duration to first one
+        this.selectedDurationIndex = 0;
         this.bookingData.services = [{
           serviceId: service._id,
-          quantity: 1
+          quantity: 1,
+          durationIndex: 0
         }];
         this.isLoading = false;
       },
@@ -352,6 +379,20 @@ export class BookingComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  selectDuration(index: number): void {
+    this.selectedDurationIndex = index;
+    if (this.service && this.bookingData.services.length > 0) {
+      this.bookingData.services[0].durationIndex = index;
+    }
+  }
+
+  getSelectedDuration(): { duration: number; price: number } | null {
+    if (!this.service || !this.service.durations || this.service.durations.length === 0) {
+      return null;
+    }
+    return this.service.durations[this.selectedDurationIndex] || this.service.durations[0];
   }
 
   initializeDateAndTimeSelection(): void {
@@ -589,7 +630,8 @@ export class BookingComponent implements OnInit {
     const bookingRequest: BookingRequest = {
       services: [{
         serviceId: this.service._id,
-        quantity: 1
+        quantity: 1,
+        durationIndex: this.selectedDurationIndex
       }],
       bookingDate: bookingDateISO,
       bookingTime: timeStr,

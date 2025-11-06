@@ -62,9 +62,13 @@ import { environment } from '../../../environments/environment';
               <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ service.name }}</h3>
               <p class="text-gray-600 mb-4">{{ service.description || 'No description available' }}</p>
               
-              <div class="flex justify-between items-center mb-4">
-                <span class="text-2xl font-bold text-primary-600">{{ 'AED ' + service.price }}</span>
-                <span class="text-sm text-gray-500">{{ service.duration }} min</span>
+              <div class="mb-4">
+                <div class="flex flex-wrap gap-2 mb-2">
+                  <span *ngFor="let duration of service.durations; let i = index" 
+                        class="px-3 py-1 bg-gray-100 rounded-md text-sm">
+                    {{ duration.duration }} min - {{ 'AED ' + duration.price }}
+                  </span>
+                </div>
               </div>
               
               <div class="grid grid-cols-3 gap-2 text-sm">

@@ -88,7 +88,10 @@ import { AuthService } from '../../services/auth.service';
                 <div *ngFor="let service of booking.services" class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                   <div>
                     <h4 class="font-medium text-gray-900">{{ service.serviceName || 'Service' }}</h4>
-                    <p class="text-sm text-gray-600">Quantity: {{ service.quantity }}</p>
+                    <p class="text-sm text-gray-600">
+                      Quantity: {{ service.quantity }}
+                      <span *ngIf="service.serviceDuration" class="ml-2">• Duration: {{ service.serviceDuration }} min</span>
+                    </p>
                   </div>
                   <div class="text-right">
                     <p class="font-medium text-gray-900">{{ getServicePrice(service) | currency:'AED' }}</p>
@@ -99,7 +102,13 @@ import { AuthService } from '../../services/auth.service';
               <div class="mt-4 pt-4 border-t border-gray-200">
                 <div class="flex justify-between items-center">
                   <div>
-                    <p class="text-sm text-gray-600">Total Amount</p>
+                    <p class="text-sm text-gray-600">
+                      <span *ngIf="booking.duration">Total Duration: {{ booking.duration }} min</span>
+                      <span *ngIf="!booking.duration && booking.services.length > 0 && booking.services[0].serviceDuration">
+                        Total Duration: {{ booking.services[0].serviceDuration * booking.services[0].quantity }} min
+                      </span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">Total Amount</p>
                     <p class="text-lg font-bold text-gray-900">{{ booking.totalPrice | currency:'AED' }}</p>
                   </div>
                   <div class="flex space-x-2">
@@ -145,10 +154,18 @@ import { AuthService } from '../../services/auth.service';
                 <div class="border-b border-gray-200 pb-3">
                   <p class="text-sm font-medium text-gray-500 mb-1">Service{{ selectedBooking.services.length > 1 ? 's' : '' }}</p>
                   <div class="space-y-2">
-                    <p *ngFor="let service of selectedBooking.services" class="text-lg font-semibold text-gray-900">
-                      {{ service.serviceName }}
-                      <span *ngIf="service.quantity > 1" class="text-sm font-normal text-gray-600">(x{{ service.quantity }})</span>
-                    </p>
+                    <div *ngFor="let service of selectedBooking.services" class="text-lg font-semibold text-gray-900">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <span>{{ service.serviceName }}</span>
+                          <span *ngIf="service.quantity > 1" class="text-sm font-normal text-gray-600">(x{{ service.quantity }})</span>
+                        </div>
+                        <div class="text-right text-sm font-normal text-gray-600">
+                          <div *ngIf="service.serviceDuration">{{ service.serviceDuration }} min</div>
+                          <div>{{ getServicePrice(service) | currency:'AED' }}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -171,6 +188,25 @@ import { AuthService } from '../../services/auth.service';
                   <div>
                     <p class="text-sm font-medium text-gray-500">Time</p>
                     <p class="text-base text-gray-900">{{ selectedBooking.bookingTime }}</p>
+                  </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="flex items-center border-b border-gray-200 pb-3">
+                  <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-gray-500">Duration</p>
+                    <p class="text-base text-gray-900">
+                      <span *ngIf="selectedBooking.duration">{{ selectedBooking.duration }} minutes</span>
+                      <span *ngIf="!selectedBooking.duration && selectedBooking.services.length > 0 && selectedBooking.services[0].serviceDuration">
+                        {{ selectedBooking.services[0].serviceDuration * selectedBooking.services[0].quantity }} minutes
+                      </span>
+                      <span *ngIf="!selectedBooking.duration && (!selectedBooking.services || selectedBooking.services.length === 0 || !selectedBooking.services[0].serviceDuration)">
+                        N/A
+                      </span>
+                    </p>
                   </div>
                 </div>
 

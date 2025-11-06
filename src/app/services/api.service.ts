@@ -5,13 +5,17 @@ import { map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
+export interface ServiceDuration {
+  duration: number; // in minutes
+  price: number;
+}
+
 export interface Service {
   _id: string;
   name: string;
   description?: string;
   categoryId: string;
-  duration: number;
-  price: number;
+  durations: ServiceDuration[];
   isActive: boolean;
   images: string[];
   thumbnails: string[];
@@ -28,6 +32,7 @@ export interface BookingRequest {
   services: {
     serviceId: string;
     quantity: number;
+    durationIndex?: number;
     customPrice?: number;
   }[];
   bookingDate: string;
