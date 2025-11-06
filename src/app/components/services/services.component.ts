@@ -111,8 +111,11 @@ export class ServicesComponent implements OnInit {
     // Subscribe to route param changes
     this.route.params.subscribe(params => {
       this.selectedCategory = params['category'] || null;
-      // Load services when route params change (categories should be loaded by then)
-      this.loadServices();
+      // Only load services if categories are already loaded
+      if (this.categories.length > 0) {
+        this.loadServices();
+      }
+      // Otherwise, loadServices will be called after categories are loaded
     });
   }
 
@@ -136,11 +139,20 @@ export class ServicesComponent implements OnInit {
     
     let categoryId: string | undefined;
     
-    // If a category name is provided in query params, find the matching category ID
+    // If a category name is provided in route params, find the matching category ID
     if (this.selectedCategory) {
-      const category = this.categories.find(
-        cat => cat.name.toLowerCase() === this.selectedCategory?.toLowerCase()
+      // Try to find by slug first (more reliable)
+      let category = this.categories.find(
+        cat => cat.slug?.toLowerCase() === this.selectedCategory?.toLowerCase()
       );
+      
+      // If not found by slug, try by name
+      if (!category) {
+        category = this.categories.find(
+          cat => cat.name.toLowerCase() === this.selectedCategory?.toLowerCase()
+        );
+      }
+      
       if (category) {
         categoryId = category._id;
       }
