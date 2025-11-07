@@ -86,7 +86,13 @@ interface Address {
                            class="w-4 h-4 text-primary-600 focus:ring-primary-500">
                     <div>
                       <span class="font-medium text-gray-900">{{ duration.duration }} minutes</span>
-                      <span class="text-gray-500 ml-2">- AED {{ duration.price }}</span>
+                      <span class="text-gray-500 ml-2">- 
+                        <span *ngIf="duration.discountPrice !== undefined && duration.discountPrice !== null">
+                          <span class="line-through text-gray-400 mr-1">AED {{ duration.price }}</span>
+                          <span class="text-green-600 font-semibold">AED {{ duration.discountPrice }}</span>
+                        </span>
+                        <span *ngIf="!duration.discountPrice">AED {{ duration.price }}</span>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -286,7 +292,13 @@ interface Address {
                 </div>
                 <div class="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Price:</span>
-                  <span>AED {{ getSelectedDuration()?.price || 0 }}</span>
+                  <span>
+                    <span *ngIf="getSelectedDuration()?.discountPrice !== undefined && getSelectedDuration()?.discountPrice !== null">
+                      <span class="line-through text-gray-400 mr-1">AED {{ getSelectedDuration()?.price || 0 }}</span>
+                      <span class="text-green-600 font-semibold">AED {{ getSelectedDuration()?.discountPrice || 0 }}</span>
+                    </span>
+                    <span *ngIf="!getSelectedDuration()?.discountPrice">AED {{ getSelectedDuration()?.price || 0 }}</span>
+                  </span>
                 </div>
                 <div *ngIf="bookingData.bookingDate" class="flex justify-between text-sm text-gray-600 mb-1">
                   <span>Date:</span>
@@ -735,7 +747,7 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  getSelectedDuration(): { duration: number; price: number } | null {
+  getSelectedDuration(): { duration: number; price: number; discountPrice?: number } | null {
     if (!this.service || !this.service.durations || this.service.durations.length === 0) {
       return null;
     }

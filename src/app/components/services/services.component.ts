@@ -66,7 +66,12 @@ import { environment } from '../../../environments/environment';
                 <div class="flex flex-wrap gap-2 mb-2">
                   <span *ngFor="let duration of service.durations; let i = index" 
                         class="px-3 py-1 bg-gray-100 rounded-md text-sm">
-                    {{ duration.duration }} min - {{ 'AED ' + duration.price }}
+                    {{ duration.duration }} min - 
+                    <span *ngIf="duration.discountPrice !== undefined && duration.discountPrice !== null">
+                      <span class="line-through text-gray-500 mr-1">{{ 'AED ' + duration.price }}</span>
+                      <span class="text-green-600 font-semibold">{{ 'AED ' + duration.discountPrice }}</span>
+                    </span>
+                    <span *ngIf="!duration.discountPrice">{{ 'AED ' + duration.price }}</span>
                   </span>
                 </div>
               </div>

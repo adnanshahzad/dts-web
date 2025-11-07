@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 export interface ServiceDuration {
   duration: number; // in minutes
   price: number;
+  discountPrice?: number;
 }
 
 export interface Service {
