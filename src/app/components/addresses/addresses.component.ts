@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 declare var google: any;
 
@@ -127,9 +128,9 @@ const UAE_CITIES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', '
               <div *ngIf="isMapLoading" class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
                 <div class="text-gray-500">Loading map...</div>
               </div>
-              <div 
-                #mapContainer 
-                id="map" 
+              <div
+                #mapContainer
+                id="map"
                 class="w-full h-64 rounded-lg overflow-hidden border border-gray-300 relative"
                 [style.display]="isMapLoading ? 'none' : 'block'"
               ></div>
@@ -207,7 +208,7 @@ const UAE_CITIES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', '
                   <option value="UAE">United Arab Emirates</option>
                 </select>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   City <span class="text-red-500">*</span>
@@ -249,7 +250,7 @@ const UAE_CITIES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', '
                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   Street <span class="text-red-500">*</span>
@@ -350,7 +351,7 @@ const UAE_CITIES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', '
 })
 export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
-  
+
   addresses: Address[] = [];
   showModal = false;
   isEditing = false;
@@ -360,14 +361,14 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
   successMessage = '';
   uaeCities = UAE_CITIES;
   addressForm: FormGroup;
-  
+
   map: any = null;
   marker: any = null;
   geocoder: any = null;
   mapInitialized = false;
   isMapLoading = false;
   private mapsScriptLoaded = false;
-  private googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Replace with your actual API key
+  private googleMapsApiKey = environment.googleMapsApiKey;
 
   constructor(
     private fb: FormBuilder,
@@ -449,7 +450,7 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Default to Dubai, UAE
     const defaultLocation = { lat: 25.2048, lng: 55.2708 };
-    
+
     // Try to get location from form if editing
     let initialLocation = defaultLocation;
     if (this.isEditing && this.addressForm.get('fullAddress')?.value) {
@@ -595,7 +596,7 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!this.geocoder && typeof google !== 'undefined') {
         this.geocoder = new google.maps.Geocoder();
       }
-      
+
       if (!this.geocoder) {
         resolve(null);
         return;
@@ -662,7 +663,7 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showModal = true;
     this.errorMessage = '';
     this.successMessage = '';
-    
+
     // Initialize map after modal opens
     setTimeout(() => {
       if (this.mapsScriptLoaded || typeof google !== 'undefined') {
@@ -693,7 +694,7 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showModal = true;
     this.errorMessage = '';
     this.successMessage = '';
-    
+
     // Initialize map after modal opens
     setTimeout(() => {
       if (this.mapsScriptLoaded || typeof google !== 'undefined') {
@@ -709,7 +710,7 @@ export class AddressesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isEditing = false;
     this.editingIndex = -1;
     this.addressForm.reset();
-    
+
     // Clean up map
     if (this.marker) {
       this.marker.setMap(null);
