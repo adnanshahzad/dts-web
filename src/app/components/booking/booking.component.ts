@@ -313,7 +313,7 @@ interface Address {
               <!-- Submit Button -->
               <button
                 type="submit"
-                [disabled]="!bookingForm.valid || isSubmitting || !isValidTimeSelected() || !service || !service.durations || service.durations.length === 0"
+                [disabled]="!bookingForm.valid || isSubmitting || !isValidTimeSelected() || !service || !service.durations || service.durations.length === 0 || !selectedAddress"
                 class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
               >
                 <span *ngIf="!isSubmitting">Confirm Booking</span>
@@ -969,6 +969,13 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
   submitBooking(): void {
     if (!this.service) return;
 
+    // Validate that an address is selected
+    if (!this.selectedAddress) {
+      alert('Please select an address before proceeding with the booking.');
+      this.openAddressSelection();
+      return;
+    }
+
     // Validate that a time slot is selected
     if (this.selectedTimeIndex < 0 || !this.bookingData.bookingTime) {
       alert('Please select a time slot.');
@@ -1119,8 +1126,8 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   closeAddressPopup(): void {
-    // Don't allow closing if no address is selected
-    if (this.selectedAddressIndex === -1 && this.addresses.length > 0) {
+    // Don't allow closing if no address is selected - address is compulsory
+    if (!this.selectedAddress) {
       return;
     }
     this.showAddressPopup = false;
@@ -1156,6 +1163,10 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.mapPin) {
       this.mapPin = null;
+    }
+    // Reopen address selection popup if no address is selected
+    if (!this.selectedAddress) {
+      this.showAddressPopup = true;
     }
   }
 
@@ -1373,6 +1384,10 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.addressDetailsMap) {
       this.addressDetailsMap = null;
+    }
+    // Reopen address selection popup if no address is selected
+    if (!this.selectedAddress) {
+      this.showAddressPopup = true;
     }
   }
 
