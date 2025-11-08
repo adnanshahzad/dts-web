@@ -38,7 +38,7 @@ import { AuthService } from '../../services/auth.service';
             </div>
             <div class="ml-3">
               <p class="text-sm font-medium text-green-800">
-                Booking confirmed successfully! Your appointment has been scheduled.
+                Booking created successfully! Your appointment is pending approval.
               </p>
             </div>
             <div class="ml-auto pl-3">
