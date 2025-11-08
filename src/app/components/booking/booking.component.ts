@@ -1038,7 +1038,18 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getImageUrl(imagePath: string): string {
-    // The imagePath already includes 'uploads/' prefix, so we just prepend the base URL
+    // If the imagePath is already a full URL (legacy data), return it as-is
+    if (imagePath && (imagePath.startsWith('http://') || imagePath.startsWith('https://'))) {
+      return imagePath;
+    }
+    
+    // Check if it's an R2 key (starts with 'services/' or 'services/thumbnails/')
+    if (imagePath && (imagePath.startsWith('services/') || imagePath.startsWith('services/thumbnails/'))) {
+      // Construct R2 URL from the key
+      return `${environment.r2PublicUrl}/${imagePath}`;
+    }
+    
+    // Otherwise, assume it's a local upload path
     return `${environment.apiUrl}/${imagePath}`;
   }
 
