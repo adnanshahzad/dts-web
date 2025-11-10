@@ -32,8 +32,8 @@ import { Router } from '@angular/router';
               Premium home-service spa and therapeutic massages brought directly to your doorstep.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button (click)="navigateToServices()" class="bg-white text-primary-600 hover:bg-gray-100 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Browse Services</button>
-              <button *ngIf="!isAuthenticated()" (click)="navigateToLogin()" class="border-2 border-white text-white hover:bg-white hover:text-primary-600 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Sign In</button>
+              <button (click)="navigateToSpa()" class="bg-primary-700 text-white hover:bg-primary-600 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Explore Spa Treatments</button>
+              <button (click)="navigateToSalon()" class="bg-white text-primary-600 hover:bg-gray-300 text-lg px-8 py-3 rounded-lg font-medium transition-colors duration-200">Explore Beauty Services</button>
             </div>
           </div>
         </div>
@@ -229,6 +229,14 @@ export class HomeComponent implements OnInit {
 
   navigateToServices(): void {
     this.router.navigate(['/services']);
+  }
+
+  navigateToSpa(): void {
+    this.router.navigate(['/services', 'spa']);
+  }
+
+  navigateToSalon(): void {
+    this.router.navigate(['/services', 'salon']);
   }
 
   navigateToLogin(): void {

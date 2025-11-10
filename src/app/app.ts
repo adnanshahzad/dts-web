@@ -10,5 +10,5 @@ import { FooterComponent } from './components/footer/footer.component';
   styleUrl: './app.css'
 })
 export class App {
-  title = 'MeTime - Professional Services';
+  title = 'Home Spa & Salon Services in Dubai at Your Doorstep | Daily Therapy Spa';
 }
